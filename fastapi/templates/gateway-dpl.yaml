@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  gateway
+  # namespace: dev
+  labels:
+    app:  gateway
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+  replicas: 1
+  # strategy:
+  #   rollingUpdate:
+  #     maxSurge: 25%
+  #     maxUnavailable: 25%
+  #   type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  gateway
+    spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name:  gateway
+        image:  jobmounchili/k-api-gateway:latest
+        command: ["sh", "-c", "uvicorn main:app --reload --host 0.0.0.0"]
+        resources: {}
+        env:
+        - name: USERS_SERVICE_URL
+          value: http://users:8000
+        - name: ORDERS_SERVICE_URL
+          value: http://orders:8000
+          # valueFrom:
+          #   configMapKeyRef:
+          #     name: gateway
+          #     key: DB_HOST
+        ports:
+        - containerPort:  8000
+          name:  gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  # namespace: dev
+spec:
+  selector:
+    app: gateway
+  type: NodePort
+  ports:
+  - name: gateway
+    protocol: TCP
+    port: 8000
+    targetPort: 8000
+    # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+    # you can specify a value in the `spec.ports[*].nodePort` field.
+    nodePort: {{ .Values.gatewayService.service.port }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: myconfigmap
+  # namespace: dev
+data:
+  USERS_SERVICE_URL: http://users:8000
+  ORDERS_SERVICE_URL: http://orders:8000
