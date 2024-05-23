@@ -27,15 +27,16 @@ stages:
   - deploy_prod
 
 
-# test:
-#   stage: test
-#   image: python:latest
-#   script:
-#     - sudo apt-get update
-    # - cd users/
-    # - pip install -r requirements.txt
-    # - cd tests/
-    # - python3 -m unittest auth.py
+ test:
+   stage: test
+   image: python:latest
+   script:
+     - sudo apt-get update
+     - cd users/
+     - pip install -r requirements.txt
+     - cd tests/
+     - python3 -m unittest auth.py
+     - python3 -m unittest fake_db.py
     # # - python3 -m unittest discover -s tests 
 
 build_gateway:
